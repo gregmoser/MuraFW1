@@ -1,4 +1,4 @@
-<!---
+!---
 
 This file is part of muraFW1
 (c) Stephen J. Withington, Jr. | www.stephenwithington.com
@@ -22,12 +22,25 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 		Modified:	2011.02.04
 
 --->
-<cfcomponent extends="controller" output="false">
+<cfcomponent extends="mura.cfobject" output="false">
 
-	<!--- ********************************* PAGES ******************************************* --->
+	<cfscript>
+		variables.fw = '';
 
-	<cffunction name="default" output="false" returntype="any">
-		<cfargument name="rc" required="true" />
-	</cffunction>
+		function init ( fw ) {
+			variables.fw = arguments.fw;
+		};
+
+		function before ( rc ) {
+			var $ = StructNew();
+			if ( StructKeyExists(rc, '$') ) {
+				$ = rc.$;
+			};
+			
+			if ( not rc.isFrontEndRequest ) {
+				fw.redirect(action='admin:main.default');
+			};
+		};
+	</cfscript>
 
 </cfcomponent>

@@ -24,6 +24,9 @@
 	</settings>
 	<eventHandlers>
 		<eventHandler event="onApplicationLoad" component="pluginEventHandler" persist="false" />
+		<eventHandler event="onGlobalSessionStart" component="pluginEventHandler" persist="false" /> 
+		<eventHandler event="onRenderStart" component="pluginEventHandler" persist="false" /> 
+		<eventHandler event="onGlobalSessionStart" component="pluginEventHandler" persist="false" />
 	</eventHandlers>
 	<displayobjects location="global">
 		<displayobject name="muraFW1" displaymethod="renderApp" component="pluginEventHandler" persist="false" />

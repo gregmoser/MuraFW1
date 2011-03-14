@@ -29,33 +29,39 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	<cfset variables.framework = getFramework() />
 
 	<!--- ********** Mura Specific Events ************* --->
+	<cffunction name="onMissingMethod">
+		<cfargument name="missingMethodName" />
+		<cfargument name="missingMethodArguments" />
+		
+		<cfset doAction(missingMethodArguments.$, "frontend:event.#lcase(missingMethodName)#") />
+	</cffunction>
+	
+	<cffunction name="onRenderStart">
+		<cfargument name="$" />
+		
+		<cfset doAction($, "frontend:event.onrenderstart") />
 
-	<cffunction name="onApplicationLoad" output="false">
-		<cfargument name="$" required="true" hint="mura scope" />
-		<cfset var state=preseveInternalState(request)>
-		<cfinvoke component="#variables.pluginConfig.getPackage()#.Application" method="onApplicationStart" />
-		<cfset restoreInternalState(request,state)>
-		<cfset variables.pluginConfig.addEventHandler(this)>
+		<cfif $.event('#variables.framework.action#') neq "">
+			<cfif $.event('overrideContent') eq true>
+				<cfset $.content('body', doAction($, $.event(variables.framework.action))) />
+			<cfelse>
+				<cfset $.content('body', $.content('body') & doAction($, $.event(variables.framework.action))) />
+			</cfif> 
+		</cfif>
 	</cffunction>
 	
 	<cffunction name="onGlobalSessionStart" output="false">
-		<cfargument name="$" required="true" hint="mura scope" />
+		<cfargument name="$">
 		<cfset var state=preseveInternalState(request)>
 		<cfinvoke component="#pluginConfig.getPackage()#.Application" method="onSessionStart" />
 		<cfset restoreInternalState(request,state)>
 	</cffunction>
 
-	<cffunction name="onSiteRequestStart" output="false">
-        <cfargument name="$" required="true" hint="mura scope" />
-        <cfset $[variables.framework.applicationKey] = this />        
-    </cffunction>
-
-	<cffunction name="onRenderStart" output="false" returntype="any">
-		<cfargument name="$" />
-		<cfscript>
-			// this allows you to call methods here by accessing '$.mfw1.methodName(argumentCollection=args)'
-			$.mfw1 = this;
-		</cfscript>
+	<cffunction name="onApplicationLoad" output="false">
+		<cfargument name="$">
+		<cfset var state=preseveInternalState(request)>
+		<cfinvoke component="#pluginConfig.getPackage()#.Application" method="onApplicationStart" />
+		<cfset restoreInternalState(request,state)>
 	</cffunction>
 
 	<!--- ********** display object/s ************ --->	
@@ -121,6 +127,21 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 		</cfsavecontent>
 		
 		<cfscript>
+			// remove and views that were set using the setView() method
+			if ( structKeyExists(request, "overrideviewaction") ) {
+				structDelete(request, "overrideviewaction");
+			}
+			
+			// clear the last view used from the request scope
+			if ( structKeyExists(request, "view") ) {
+				structDelete(request, "view");
+			}
+			
+			// Clear any additional controllers that we're qued for this action
+			if ( structKeyExists(request, "controllers") ) {
+				structDelete(request, "controllers");
+			}
+			
 			// restore the url scope
 			if ( StructKeyExists(url,variables.framework.action) ) {
 				StructDelete(url,variables.framework.action);
